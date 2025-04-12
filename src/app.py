@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, redirect, request, render_template, url_for
 import joblib
 import numpy as np
 import os
@@ -55,68 +55,53 @@ def validate_request_data(request) -> str:
 
 @app.route('/')
 def home():
-    return "¡Bienvenido a la app de predicción de la gripe!"
+    return redirect(url_for('prediction'))
 
-@app.route('/form', methods=['GET', 'POST'])
-def form():
-
-    error_message = validate_request_data(request)
-    if error_message:
-        return error_message
-    
-    today = date.today()
-    year, week, _ = today.isocalendar()
-    epiweek_current = int(f"{year}{week:02d}") 
-
-    default_num_ili = X_train_with_outliers['num_ili'].mean()
-    default_num_providers = X_train_with_outliers['num_providers'].mean()
-    temperature_mean = X_train_with_outliers['temperature_2m_mean'].mean()
-
+@app.route('/prediction', methods=['GET', 'POST'])
+def prediction():
     if request.method == 'POST':
+        # Validar los datos solo cuando se envía el formulario.
+        error_message = validate_request_data(request)
+        if error_message:
+            return error_message
+
+        today = date.today()
+        year, week, _ = today.isocalendar()
+        epiweek_current = int(f"{year}{week:02d}") 
+
+        default_num_ili = X_train_with_outliers['num_ili'].mean()
+        default_num_providers = X_train_with_outliers['num_providers'].mean()
+        temperature_mean = X_train_with_outliers['temperature_2m_mean'].mean()
 
         selected_state = request.form['state']
-        
         states_vector = [1 if state.lower() == selected_state.lower().strip() else 0 for state in states_list]
-
         temperature = float(request.form['temperature'])
-
         num_ili = float(request.form['num_ili'])
         num_providers = float(request.form['num_providers'])
 
         features = [epiweek_current, temperature, num_ili, num_providers] + states_vector
-        print(f"Valores ingresados: epiweek_default={epiweek_current:.2f}, Temperature={temperature}, Num_ILI={num_ili}, Num_Providers={num_providers}, States={states_vector}")
-        
+        print(f"Valores ingresados: epiweek={epiweek_current}, Temperature={temperature}, Num_ILI={num_ili}, Num_Providers={num_providers}, States={states_vector}")
         features_df = pd.DataFrame([features], columns=feature_columns)
         prediction = model.predict(features_df)
-        
-        explanation = f"""
-            Predicción para {selected_state.title()}: {prediction[0]:.2f}%<br>
-            Esto representa el porcentaje de visitas médicas relacionadas con síntomas similares
-            a los de la gripe en el estado seleccionado.<br>
-            <br>
-            **Nota:** Si no se proporcionan entradas reales, los resultados podrían ser menos precisos.
-        """
-        return explanation
-    
-    return f'''
-        <form method="POST">
-            <label for="num_ili">Número de visitas médicas relacionadas con la gripe:</label>
-            <input type="text" name="num_ili" id="num_ili" required placeholder="{default_num_ili:.2f}"><br>
-            
-            <label for="num_providers">Número de proveedores médicos:</label>
-            <input type="text" name="num_providers" id="num_providers" required placeholder="{default_num_providers:.2f}"><br>
-            
-            <label for="temperature">Temperatura promedio (°C):</label>
-            <input type="text" name="temperature" id="temperature" placeholder="{temperature_mean:.2f}"><br>
-            
-            <label for="state">Selecciona un estado:</label>
-            <select name="state" id="state" required>
-                {''.join([f'<option value="{state}">{state.title()}</option>' for state in states_list])}
-            </select><br>
-            
-            <button type="submit">Predecir</button>
-        </form>
-    '''
+
+        return render_template(
+            "form.html",
+            prediction=f"{prediction[0]:.2f}",
+            state=selected_state,
+            default_num_ili=default_num_ili,
+            default_num_providers=default_num_providers,
+            temperature_mean=temperature_mean,
+            states_list=states_list
+        )
+    else:
+        # Para GET simplemente muestra el formulario sin hacer validaciones.
+        return render_template(
+            "form.html",
+            default_num_ili=X_train_with_outliers['num_ili'].mean(),
+            default_num_providers=X_train_with_outliers['num_providers'].mean(),
+            temperature_mean=X_train_with_outliers['temperature_2m_mean'].mean(),
+            states_list=states_list
+        )
 
 if __name__ == "__main__":
     app.run(debug=True)

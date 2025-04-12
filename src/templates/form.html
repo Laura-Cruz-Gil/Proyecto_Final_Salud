@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Predicción de la Gripe</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #f8f9fa;
+        font-family: Arial, sans-serif;
+      }
+      .container {
+        margin-top: 50px;
+      }
+      .header {
+        margin-bottom: 30px;
+      }
+      .result {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #e9ecef;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Encabezado -->
+      <div class="header text-center">
+        <h1>Bienvenido a la App de Predicción de la Gripe</h1>
+        <p>Introduce tus datos para obtener una predicción</p>
+      </div>
+
+      <!-- Formulario -->
+      <div class="card mb-4">
+        <div class="card-body">
+          {% if error_message %}
+            <div class="alert alert-danger" role="alert">
+              {{ error_message }}
+            </div>
+          {% endif %}
+          <form method="POST">
+            <div class="mb-3">
+              <label for="num_ili" class="form-label">Número de visitas médicas</label>
+              <input
+                type="text"
+                name="num_ili"
+                id="num_ili"
+                class="form-control"
+                required
+                placeholder="{{ default_num_ili | round(2) }}"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="num_providers" class="form-label">Número de proveedores médicos</label>
+              <input
+                type="text"
+                name="num_providers"
+                id="num_providers"
+                class="form-control"
+                required
+                placeholder="{{ default_num_providers | round(2) }}"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="temperature" class="form-label">Temperatura promedio (°C)</label>
+              <input
+                type="text"
+                name="temperature"
+                id="temperature"
+                class="form-control"
+                placeholder="{{ temperature_mean | round(2) }}"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="state" class="form-label">Selecciona un estado</label>
+              <select name="state" id="state" class="form-select" required>
+                {% for state in states_list %}
+                  <option value="{{ state }}">{{ state.title() }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Predecir</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Resultado de la predicción -->
+      {% if prediction %}
+        <div class="result text-center">
+          <h2>Predicción para {{ state | title }}: {{ prediction }}%</h2>
+          <p>
+            Esto representa el porcentaje de visitas médicas relacionadas con síntomas
+            similares a los de la gripe en el estado seleccionado.
+          </p>
+          <p>
+            <em>
+              Nota: Si no se proporcionan entradas reales, los resultados podrían ser menos precisos.
+            </em>
+          </p>
+        </div>
+      {% endif %}
+    </div>
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
