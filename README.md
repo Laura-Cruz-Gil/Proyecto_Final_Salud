@@ -105,6 +105,16 @@ You can place your raw datasets in the data/raw directory, intermediate datasets
 
 To process data, you can modify the app.py script to include your data processing steps, using pandas for data manipulation and analysis.
 
+## How run a Flask App
+
+export FLASK_APP=hello
+
+export FLASK_ENV=development
+
+And finally, execute the next command to start the application:
+
+flask run
+
 ## Contributors
 
 This template was built as part of the [Data Science and Machine Learning Bootcamp](https://4geeksacademy.com/us/coding-bootcamps/datascience-machine-learning) by 4Geeks Academy by [Alejandro Sanchez](https://twitter.com/alesanchezr) and many other contributors. Learn more about [4Geeks Academy BootCamp programs](https://4geeksacademy.com/us/programs) here.
