@@ -5,12 +5,12 @@ import os
 import pandas as pd
 from datetime import date
 
-model_path = os.path.join(os.path.dirname(__file__), '../models/best_random_forest_model_with_regions.joblib')
+model_path = os.path.join(os.path.dirname(__file__), '../models/best_random_forest_model_with_regions_compressed.joblib')
 model = joblib.load(model_path)
 
-y_train = pd.read_csv(os.path.join(os.path.dirname(__file__), '../data/processed/y_with_regions_train.csv'), delimiter=',')
-X_train_with_outliers = pd.read_csv(os.path.join(os.path.dirname(__file__), '../data/processed/X_train_with_regions_with_outliers_std.csv'), delimiter=',')
-
+NUM_ILI_PLACEHOLDER = 20.
+NUM_PROVIDERS_PLACEHOLDER = 10.
+TEMPERATURE_PLACEHOLDER = 25.
 TEMPERATURE_MIN = -62.2
 TEMPERATURE_MAX = 56.7
 
@@ -89,7 +89,7 @@ def prediction():
 
         
         if not request.form.get('temperature'):
-            temperature = X_train_with_outliers['temperature_2m_mean'].mean()
+            temperature = TEMPERATURE_PLACEHOLDER
         else:
             temperature = float(request.form['temperature'])
             
@@ -117,9 +117,9 @@ def prediction():
     else:
         return render_template(
             "form.html",
-            default_num_ili=X_train_with_outliers['num_ili'].max(),
-            default_num_providers=X_train_with_outliers['num_providers'].max(),
-            temperature_mean=X_train_with_outliers['temperature_2m_mean'].max(),
+            default_num_ili=NUM_ILI_PLACEHOLDER,
+            default_num_providers=NUM_PROVIDERS_PLACEHOLDER,
+            temperature_mean=TEMPERATURE_PLACEHOLDER,
             states_list=states_list
         )
 
