@@ -16,7 +16,6 @@ TEMPERATURE_MAX = 56.7
 
 app = Flask(__name__)
 
-# Lista de estados y mapeo a regiones HHS
 states_list = [
     "alabama", "alaska", "arizona", "arkansas", "california", "colorado", "connecticut",
     "delaware", "florida", "georgia", "hawaii", "idaho", "illinois", "indiana", "iowa",
@@ -28,7 +27,7 @@ states_list = [
     "wisconsin", "wyoming"
 ]
 
-# Mapeo de estados a regiones HHS
+
 state_to_hhs = {
     "alabama": "region_HHS4", "alaska": "region_HHS10", "arizona": "region_HHS9", "arkansas": "region_HHS6",
     "california": "region_HHS9", "colorado": "region_HHS8", "connecticut": "region_HHS1",
@@ -45,7 +44,6 @@ state_to_hhs = {
     "west virginia": "region_HHS3", "wisconsin": "region_HHS5", "wyoming": "region_HHS8"
 }
 
-# Columnas del modelo
 region_cols = [f"region_HHS{i}" for i in range(1, 11)]
 feature_columns = ["epiweek", "temperature_2m_mean", "num_ili", "num_providers"] + region_cols
 
@@ -60,10 +58,9 @@ def validate_request_data(request) -> str:
     except ValueError:
         return "Error: Invalid input. Please enter numeric values for num_ili and num_providers."
 
-    temperature = request.form['temperature']
-    if temperature:
+    if request.form.get('temperature'):
         try:
-            temperature = float(temperature)
+            temperature = float(request.form['temperature'])
             if temperature < TEMPERATURE_MIN or temperature > TEMPERATURE_MAX:
                 return f"Error: Temperature out of range. Please enter a value between {TEMPERATURE_MIN} and {TEMPERATURE_MAX}."
         except ValueError:
@@ -90,7 +87,12 @@ def prediction():
         region = state_to_hhs[selected_state.lower()]
         regions_vector = [1 if col == region else 0 for col in region_cols]
 
-        temperature = float(request.form['temperature'])
+        
+        if not request.form.get('temperature'):
+            temperature = X_train_with_outliers['temperature_2m_mean'].mean()
+        else:
+            temperature = float(request.form['temperature'])
+            
         num_ili = float(request.form['num_ili'])
         num_providers = float(request.form['num_providers'])
 
